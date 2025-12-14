@@ -38,7 +38,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; WPF Application
 Source: "D:\After\Hope\Hope\Hope\bin\Release\net10.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Python Engine (bundled)
-Source: "D:\After\Hope\Hope\Hope\dist\engine\*"; DestDir: "{app}\engine"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\After\Hope\dist\engine\*"; DestDir: "{app}\engine"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Documentation
 Source: "D:\After\Hope\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\After\Hope\LICENSE"; DestDir: "{app}"; Flags: ignoreversion

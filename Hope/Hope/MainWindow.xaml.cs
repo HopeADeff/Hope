@@ -25,8 +25,8 @@ namespace ArtShield
             
             bool isGlazeMethod = ProtectionMethodCombo.SelectedIndex == 1;
             
-            if (TargetLabel != null) TargetLabel.Visibility = isGlazeMethod ? Visibility.Collapsed : Visibility.Visible;
-            if (TargetInput != null) TargetInput.Visibility = isGlazeMethod ? Visibility.Collapsed : Visibility.Visible;
+            if (TargetLabel != null) TargetLabel.Visibility = (isGlazeMethod || ProtectionMethodCombo.SelectedIndex == 2) ? Visibility.Collapsed : Visibility.Visible;
+            if (TargetInput != null) TargetInput.Visibility = (isGlazeMethod || ProtectionMethodCombo.SelectedIndex == 2) ? Visibility.Collapsed : Visibility.Visible;
             if (StyleLabel != null) StyleLabel.Visibility = isGlazeMethod ? Visibility.Visible : Visibility.Collapsed;
             if (TargetStyleCombo != null) TargetStyleCombo.Visibility = isGlazeMethod ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -60,7 +60,7 @@ namespace ArtShield
             string outputFileName = $"{fileNameNoExt}_protected{ext}";
             string outputPath = Path.Combine(directory, outputFileName);
             string appFolder = AppDomain.CurrentDomain.BaseDirectory;
-            string engineExePath = Path.Combine(appFolder, "engine.exe");
+            string engineExePath = Path.Combine(appFolder, "engine", "engine.exe");
             string engineScriptPath = Path.Combine(appFolder, "engine.py");
             string engineInterpreter = "python";
             string? searchDir = appFolder;
@@ -95,6 +95,7 @@ namespace ArtShield
             int iterations = (int)IterationSlider.Value;
             int quality = (int)QualitySlider.Value;
             bool useGlazeMethod = ProtectionMethodCombo.SelectedIndex == 1;
+            bool useNightshadeMethod = ProtectionMethodCombo.SelectedIndex == 2;
             string targetStyle = "abstract"; 
             
             if (useGlazeMethod && TargetStyleCombo.SelectedItem != null)
@@ -134,6 +135,12 @@ namespace ArtShield
                     {
                         args += $" --target-style {targetStyle}";
                     }
+                    else if (useNightshadeMethod)
+                    {
+                        args += " --nightshade";
+                        // Default concepts for now
+                        args += " --source-concept artwork --target-concept noise";
+                    }
                     else
                     {
                         args += $" --target-file \"{targetFilePath}\"";
@@ -162,6 +169,11 @@ namespace ArtShield
                     if (useGlazeMethod)
                     {
                         args += $" --target-style {targetStyle}";
+                    }
+                    else if (useNightshadeMethod)
+                    {
+                         args += " --nightshade";
+                         args += " --source-concept artwork --target-concept noise";
                     }
                     else
                     {
@@ -294,7 +306,7 @@ namespace ArtShield
                 double inputSizeKB = inputFileInfo.Length / 1024.0;
                 FileSizeText.Text = $"Size: {inputSizeKB:F1} KB → {outputSizeKB:F1} KB";
                 
-                string methodInfo = useGlazeMethod ? $"Glaze ({targetStyle})" : "Adversarial";
+                string methodInfo = useGlazeMethod ? $"Glaze ({targetStyle})" : (useNightshadeMethod ? "Nightshade" : "Adversarial");
                 MessageBox.Show($"File saved at: {outputPath}\n\nSettings:\n- Method: {methodInfo}\n- Intensity: {intensity:F2}\n- Iterations: {iterations}\n- Quality: {quality}\n- Size: {inputSizeKB:F1}KB → {outputSizeKB:F1}KB");
             }
             catch (Exception ex)
