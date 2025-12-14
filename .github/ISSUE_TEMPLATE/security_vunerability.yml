@@ -1,0 +1,96 @@
+name: 'Security Vulnerability Report'
+description: Report a security vulnerability related to file handling or other aspects of the project.
+title: '[SECURITY] <Short description of the vulnerability>'
+labels:
+  - security
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚠️ **Important Security Notice**
+        **Do NOT publicly disclose critical or high-impact security vulnerabilities here.**
+        For serious vulnerabilities (e.g., those that could lead to data leaks, privilege escalation, or remote code execution), please contact the maintainers directly at [lethanhtrung.trungle@gmail.com](mailto:lethanhtrung.trungle@gmail.com) for responsible disclosure.
+
+        Only use this form for low/medium severity issues or if you are unsure.
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔒 Vulnerability Description
+        Clearly and concisely describe the security vulnerability.
+  - type: textarea
+    id: description
+    attributes:
+      label: Vulnerability Description
+      description: What is the security vulnerability?
+      placeholder: Describe the vulnerability in detail.
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 Steps to Reproduce
+        List the steps so we can reproduce and verify the vulnerability.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the vulnerability.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## 🛡️ Impact
+        What is the potential impact of this vulnerability? (e.g., data leak, privilege escalation, etc.)
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What could happen if this vulnerability is exploited?
+      placeholder: Describe the possible impact.
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## 🧑‍💻 Environment Information
+        Please provide as much detail as possible to help us identify the issue.
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: e.g. Windows 11, Ubuntu 22.04, ...
+    validations:
+      required: false
+  - type: input
+    id: node
+    attributes:
+      label: Node.js Version
+      description: e.g. 18.x, ...
+    validations:
+      required: false
+  - type: input
+    id: package_manager
+    attributes:
+      label: Package Manager
+      description: pnpm, npm, yarn, ...
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Add any other information you think might be helpful.
+      placeholder: Any other context or details.
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        ## 📧 Confidential Reporting
+        If you prefer to report this vulnerability privately, please contact the maintainers at [lethanhtrung.trungle@gmail.com](mailto:lethanhtrung.trungle@gmail.com).
