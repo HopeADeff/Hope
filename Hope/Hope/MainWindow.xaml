@@ -1,7 +1,8 @@
 ﻿<Window x:Class="ArtShield.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Hope-AD | AI Image Protection" Height="600" Width="800" Background="#1E1E1E">
+        Title="Hope-AD | AI Image Protection" Height="600" Width="800" Background="#1E1E1E"
+        Icon="Hope.ico">
 
     <Grid Margin="20">
         <Grid.ColumnDefinitions>
