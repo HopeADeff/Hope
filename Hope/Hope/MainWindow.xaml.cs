@@ -64,7 +64,7 @@ namespace ArtShield
             string engineScriptPath = Path.Combine(appFolder, "engine.py");
             string engineInterpreter = "python";
             string? searchDir = appFolder;
-            for (int i = 0; i < 5 && searchDir != null; i++)
+            for (int i = 0; i < 7 && searchDir != null; i++)
             {
                 string venvPython = Path.Combine(searchDir, "venv", "Scripts", "python.exe");
                 if (File.Exists(venvPython))
@@ -84,6 +84,10 @@ namespace ArtShield
                 MessageBox.Show($"Engine file not found in: {appFolder}\nPlace engine file there or set ENGINE_PYTHON environment variable.");
                 return;
             }
+
+            // Debug: Check if using venv or system Python
+            bool usingVenv = engineInterpreter.Contains("venv");
+            System.Diagnostics.Debug.WriteLine($"[Hope-AD] Python: {engineInterpreter}, UsingVenv: {usingVenv}");
 
 
             string target = TargetInput.Text;
@@ -248,7 +252,8 @@ namespace ArtShield
             {
                 StatusText.Text = $"Engine error (code {exitCode})";
                 RunBtn.IsEnabled = true;
-                MessageBox.Show($"Engine exited with code {exitCode}.\n\nStderr:\n{stdErr}");
+                string pythonInfo = usingVenv ? $"venv Python: {engineInterpreter}" : "System Python (venv not found!)";
+                MessageBox.Show($"Engine exited with code {exitCode}.\n\nPython: {pythonInfo}\n\nStderr:\n{stdErr}");
                 return;
             }
 
