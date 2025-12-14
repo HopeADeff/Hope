@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="All" />
+    <BuildType Name="Debug" />
+    <BuildType Name="DefaultBuild" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Project Path="Hope/Hope/Hope.csproj">
+    <BuildType Solution="All|*" Project="Debug" />
+    <BuildType Solution="DefaultBuild|*" Project="Release" />
+  </Project>
+</Solution>
+

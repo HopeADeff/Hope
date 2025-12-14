@@ -1,0 +1,49 @@
+name: 'Feature Request'
+description: Suggest an idea or new feature for the project
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+        Thank you for contributing your idea to the project! Please fill out all the information below.
+  - type: input
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: A short description of the feature you want to suggest.
+      placeholder: E.g. Add Google login functionality.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation/Purpose
+      description: Why do you need this feature? What problem does it solve?
+      placeholder: E.g. Helps users log in faster.
+    validations:
+      required: true
+  - type: textarea
+    id: desired-solution
+    attributes:
+      label: Desired Solution
+      description: How would you like this feature to work?
+      placeholder: E.g. When clicking "Login with Google" a Google authentication popup appears.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you tried any alternative solutions? If so, please describe them.
+      placeholder: E.g. Login with email, Facebook, ...
+    validations:
+      required: false
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Any other information that may help us better understand your suggestion.
+      placeholder: E.g. Reference links, mockups, ...
+    validations:
+      required: false

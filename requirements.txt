@@ -1,0 +1,12 @@
+# Core dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+Pillow>=9.0.0
+numpy>=1.21.0
+
+# CLIP for adversarial perturbations and Nightshade
+git+https://github.com/openai/CLIP.git
+
+# Required for full functionality
+scipy>=1.7.0          # Frequency analysis, DCT steganography
+PyWavelets>=1.4.0     # DWT watermarking

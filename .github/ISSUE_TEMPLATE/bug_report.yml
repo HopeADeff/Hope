@@ -1,0 +1,68 @@
+name: 'Bug Report'
+description: Submit a bug to help us improve the project
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report
+        Thank you for helping us improve the project! Please fill out all the information below.
+  - type: input
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A short description of the bug you encountered.
+      placeholder: E.g. When clicking button X, the app crashes.
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: List the steps to reproduce the bug.
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. Observe the error
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: E.g. The app should display a success message.
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: E.g. The app crashed and no error message was shown.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Information about OS, browser, project version, etc.
+      placeholder: E.g. Windows 11, Chrome 120, v1.2.3
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (if any)
+      description: Attach screenshots if necessary.
+      placeholder: Drag and drop or paste images here.
+    validations:
+      required: false
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Any other information that may help us handle the bug better.
+      placeholder: E.g. Error logs, related links, ...
+    validations:
+      required: false
