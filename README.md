@@ -217,9 +217,9 @@ Kết quả là mô hình AI sẽ "nhìn thấy" một phong cách hoàn toàn k
 
 ---
 
-## 2. Hướng dẫn Cài đặt (Dành cho Nhà phát triển)
+## 2. Hướng dẫn Cài đặt (Dành cho Devs)
 
-Nếu bạn muốn phát triển hoặc chạy mã nguồn trực tiếp từ Python (thay vì dùng file .exe), vui lòng tuân thủ quy trình chuẩn hóa sau:
+Nếu các bạn devs muốn phát triển hoặc chạy mã nguồn trực tiếp từ Python (thay vì dùng file .exe), vui lòng tuân thủ quy trình chuẩn hóa sau:
 
 **Yêu cầu:**
 
