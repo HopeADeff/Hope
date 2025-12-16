@@ -327,9 +327,9 @@ A: **Tin tưởng, nhưng không tuyệt đối.**
     - **Hiệu quả thấp hơn**: Với các model quá mới hoặc kiến trúc quá khác (Midjourney v6, DALL-E 3, Gemini Banana Pro, GPT-4o, etc.) - do chúng không công khai mã nguồn để tấn công.
 3.  **Lời khuyên chân thành**: Không có công cụ nào bảo vệ được 100%. Hope-AD giống như một cái "khóa cửa" xịn cho ngôi nhà nghệ thuật của bạn. Nó chặn được hầu hết những kẻ tò mò, táy máy tay chân lôi ảnh về train (chiếm đa số). Còn nếu gặp chuyên gia cố tình phá khóa thì rất khó. Nhưng bạn yên tâm, tranh của mình chưa đến mức bị các đại ty để ý đâu. Cứ dùng để an tâm sáng tạo nhé!
 
-### Q: Khi nào sẽ phát hành trên các nền tảng khác?
+### Q: Khi nào sẽ phát hành trên các hệ máy khác?
 
-A: Việc chuyển app dựa hoàn toàn trên nền tảng WPF/CSharp lên Android, iOS, MacOS (x64/ARM) là hiện tại là quá xa so với trình độ của cả đội ngũ, đặc biệt là về mặt tối ưu. Nhưng việc xuất hiện trên các nền tảng vẫn sẽ khả thi, khi maintainer chính của team, Noah, vốn đã có kinh nghiệm trong việc viết desktop và mobile app bằng JavaScript nên việc chuyển đổi từ CSharp sang hẳn JS là vấn đề thời gian, nhưng chắc vẫn sẽ có vấn đề về mặt hiệu năng khi vẫn sẽ phải hoàn toàn phụ thuộc vào Python để xử lí các logic AI, backend.
+A: Việc chuyển app dựa hoàn toàn trên nền tảng WPF/CSharp lên hệ điều hành Android, iOS, MacOS (x64/ARM) là hiện tại là **quá xa** so với trình độ của cả đội ngũ, đặc biệt là về mặt tối ưu. Nhưng việc xuất hiện trên các hệ điều hành khác vẫn sẽ khả thi, khi maintainer chính của team, Noah, vốn đã có kinh nghiệm trong việc viết desktop và mobile app bằng JavaScript nên việc chuyển đổi từ CSharp sang hẳn JS sẽ còn chỉ là vấn đề thời gian, nhưng chắc chắn vẫn sẽ có vấn đề về mặt hiệu năng khi vẫn sẽ phải hoàn toàn phụ thuộc vào Python để xử lí các logic AI, backend, etc.
 
 ## Dung lượng Lưu trữ (Disk Space)
 
@@ -337,7 +337,7 @@ A: Việc chuyển app dựa hoàn toàn trên nền tảng WPF/CSharp lên Andr
 | ------------------------------ | ------------ | -------------------------------------------------------------- |
 | **Installer (.exe)**           | **~2.76 MB** | Chưa bao gồm các binary cần thiết của Python, môi trường, etc. |
 | **Source Code**                | **~1 MB**    | Chưa bao gồm venv                                              |
-| **Installed (Full/.exe/.bin)** | **~7.28 GB** | Cả file installation chính và dependencies                     |
+| **Installed (Full/.exe/.bin)** | **~7.28 GB** | Cả file installation `setup.exe` chính và dependencies         |
 
 ## Tài liệu Tham khảo & Ghi nhận (References & Credits)
 
