@@ -1,302 +1,99 @@
-#!/usr/bin/env python3
+
 import sys
-import io
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from PIL import Image, ImageFilter
 import numpy as np
+from PIL import Image
 from pathlib import Path
-from typing import Tuple, Optional, Dict
+from tqdm import tqdm
 
 try:
-    import clip
-    CLIP_AVAILABLE = True
+    from diffusers import AutoencoderKL, UNet2DConditionModel, PNDMScheduler
+    from transformers import CLIPTextModel, CLIPTokenizer
+    DIFFUSERS_AVAILABLE = True
 except ImportError:
-    CLIP_AVAILABLE = False
+    DIFFUSERS_AVAILABLE = False
 
 try:
-    from utils import ensure_utf8_stdout, println, validate_image_path, check_image_dimensions
+    from utils import println, ensure_utf8_stdout, validate_image_path, get_model_path, check_image_dimensions
+    from gpu_utils import get_device
 except ImportError:
-    def ensure_utf8_stdout():
-        try:
-            sys.stdout.reconfigure(encoding="utf-8")
-            sys.stderr.reconfigure(encoding="utf-8")
-        except AttributeError:
-            sys.stdout = io.TextIOWrapper(
-                sys.stdout.buffer, 
-                encoding="utf-8", 
-                errors="backslashreplace", 
-                line_buffering=True
-            )
-            sys.stderr = io.TextIOWrapper(
-                sys.stderr.buffer, 
-                encoding="utf-8", 
-                errors="backslashreplace", 
-                line_buffering=True
-            )
-
-    def println(s):
-        sys.stdout.write(str(s) + "\n")
-        sys.stdout.flush()
-    
-    def validate_image_path(path):
-        return True
-    
-    def check_image_dimensions(path, max_dim=4096):
-        return (0, 0, False)
-
+    pass
 
 class GlazeStyleProtector:
-    MOMENTUM_BASE_DECAY = 0.9
-    MOMENTUM_ADAPTIVE_DECAY = 0.08
-    STEP_SIZE_MULTIPLIER = 2.5
-    
-    LOSS_WEIGHT_TARGET_STYLE = 3.0
-    LOSS_WEIGHT_ORIGINAL_STYLE = 2.0
-    LOSS_WEIGHT_OTHER_STYLES = 1.0
-    
-    CLIP_BASE_DIM = 512
-    CLIP_LARGE_DIM = 768
-    
-    STYLE_DESCRIPTIONS = {
-        "abstract": [
-            "abstract expressionist painting with chaotic brushstrokes",
-            "Jackson Pollock style drip painting with random splatter",
-            "non-representational abstract art with geometric shapes",
-            "pure abstract composition with no recognizable forms"
-        ],
-        "impressionist": [
-            "impressionist painting with visible brushstrokes",
-            "Claude Monet style soft focus landscape",
-            "post-impressionist artwork with bright colors",
-            "impressionist style with dappled light and loose brushwork"
-        ],
-        "cubist": [
-            "cubist painting with geometric fragmentation",
-            "Picasso style analytical cubism with multiple perspectives",
-            "abstract cubist composition breaking forms into planes",
-            "cubist artwork with angular geometric shapes"
-        ],
-        "sketch": [
-            "rough pencil sketch with loose lines",
-            "hand-drawn charcoal sketch with hatching",
-            "preliminary drawing with construction lines",
-            "black and white pencil drawing with shading"
-        ],
-        "watercolor": [
-            "watercolor painting with soft washes",
-            "transparent watercolor with flowing pigments",
-            "loose watercolor sketch with wet-on-wet technique",
-            "delicate watercolor illustration with light colors"
-        ]
+    STYLE_PROMPTS = {
+        "abstract": "abstract expressionist painting, chaotic, splatters, jackson pollock",
+        "impressionist": "impressionist painting, claude monet, visible brushstrokes, light and color",
+        "cubist": "cubist painting, picasso, geometric shapes, fragmented perspective",
+        "sketch": "charcoal sketch, rough pencil drawing, monochrome, hatching",
+        "watercolor": "watercolor painting, wet on wet, flowing pigments, soft edges"
     }
-    
+
     def __init__(
-        self, 
-        target_style: str = "abstract", 
-        intensity: float = 0.45, 
-        iterations: int = 250,
+        self,
+        target_style: str = "abstract",
+        intensity: float = 0.45,
+        iterations: int = 50,
         verbose: bool = True
     ):
-        if target_style not in self.STYLE_DESCRIPTIONS:
-            raise ValueError(
-                f"Unsupported style: {target_style}. "
-                f"Choose from: {list(self.STYLE_DESCRIPTIONS.keys())}"
-            )
-        
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if not DIFFUSERS_AVAILABLE:
+            raise RuntimeError("Diffusers library not found.")
+            
+        if target_style not in self.STYLE_PROMPTS:
+            raise ValueError(f"Unknown style: {target_style}")
+            
+        self.device = get_device()
         self.target_style = target_style
+        self.style_prompt = self.STYLE_PROMPTS[target_style]
         self.intensity = intensity
         self.iterations = iterations
         self.verbose = verbose
         
         if verbose:
-            println("=== GLAZE-STYLE PROTECTION MODULE ===")
-            println(f"STATUS: Device: {self.device}")
-            println(f"STATUS: Target Style: {target_style}")
-        
-        if not CLIP_AVAILABLE:
-            raise RuntimeError(
-                "CLIP is required! Install with: "
-                "pip install git+https://github.com/openai/CLIP.git"
-            )
-        
+            println("=== GLAZE (SD v1.5) PROTECTOR ===")
+            println(f"Device: {self.device}")
+            println(f"Target Style: '{target_style}'")
+
+        model_path = get_model_path("sd-v1-5")
         if verbose:
-            println("STATUS: Loading CLIP ViT-B/32...")
-        self.clip_model, _ = clip.load("ViT-B/32", device=self.device)
-        self.clip_model.eval()
-        
-        if verbose:
-            println("STATUS: *** CLIP ViT-B/32 LOADED ***")
-        
+            println(f"Loading models from: {model_path}")
+            
         try:
-            if verbose:
-                println("STATUS: Loading CLIP ViT-L/14 (stronger)...")
-            self.clip_large, _ = clip.load("ViT-L/14", device=self.device)
-            self.clip_large.eval()
-            if verbose:
-                println("STATUS: *** CLIP ViT-L/14 LOADED ***")
-            self.has_large = True
-        except Exception:
-            if verbose:
-                println("WARNING: ViT-L/14 not available, using ViT-B/32 only")
-            self.has_large = False
-        
-        for param in self.clip_model.parameters():
-            param.requires_grad = False
-        
-        if self.has_large:
-            for param in self.clip_large.parameters():
-                param.requires_grad = False
-        
-        self.style_embeddings = self._compute_style_embeddings()
-        
-        if verbose:
-            println("STATUS: Style embeddings computed")
-    
-    def _compute_style_embeddings(self) -> Dict[str, Dict[str, torch.Tensor]]:
-        embeddings = {}
-        
+            self.vae = AutoencoderKL.from_pretrained(
+                model_path, subfolder="vae", local_files_only=True
+            ).to(self.device)
+            
+            self.tokenizer = CLIPTokenizer.from_pretrained(
+                model_path, subfolder="tokenizer", local_files_only=True
+            )
+            
+            self.text_encoder = CLIPTextModel.from_pretrained(
+                model_path, subfolder="text_encoder", local_files_only=True
+            ).to(self.device)
+            
+            self.unet = UNet2DConditionModel.from_pretrained(
+                model_path, subfolder="unet", local_files_only=True
+            ).to(self.device)
+            
+            self.scheduler = PNDMScheduler.from_pretrained(
+                model_path, subfolder="scheduler", local_files_only=True
+            )
+            
+            self.vae.requires_grad_(False)
+            self.text_encoder.requires_grad_(False)
+            self.unet.requires_grad_(False)
+            
+        except Exception as e:
+            raise RuntimeError(f"Failed to load models: {e}")
+
+    def _get_text_embedding(self, prompt: str) -> torch.Tensor:
+        tokens = self.tokenizer(
+            prompt, padding="max_length", max_length=self.tokenizer.model_max_length, 
+            truncation=True, return_tensors="pt"
+        ).input_ids.to(self.device)
         with torch.no_grad():
-            for style_name, descriptions in self.STYLE_DESCRIPTIONS.items():
-                embeddings[style_name] = {}
-                
-                tokens = clip.tokenize(descriptions).to(self.device)
-                
-                features_base = self.clip_model.encode_text(tokens)
-                features_base = features_base / features_base.norm(dim=-1, keepdim=True)
-                avg_embedding_base = features_base.mean(dim=0, keepdim=True)
-                avg_embedding_base = avg_embedding_base / avg_embedding_base.norm(dim=-1, keepdim=True)
-                embeddings[style_name]['base'] = avg_embedding_base
-                
-                if self.has_large:
-                    features_large = self.clip_large.encode_text(tokens)
-                    features_large = features_large / features_large.norm(dim=-1, keepdim=True)
-                    avg_embedding_large = features_large.mean(dim=0, keepdim=True)
-                    avg_embedding_large = avg_embedding_large / avg_embedding_large.norm(dim=-1, keepdim=True)
-                    embeddings[style_name]['large'] = avg_embedding_large
-        
-        return embeddings
-    
-    def get_style_embedding(self, style_name: str, model: str = 'base') -> torch.Tensor:
-        style_embeddings = self.style_embeddings.get(style_name, {})
-        return style_embeddings.get(model)
-    
-    def style_loss(
-        self, 
-        img_tensor: torch.Tensor, 
-        target_style_embedding: torch.Tensor,
-        clip_model
-    ) -> torch.Tensor:
-        
-        resized = F.interpolate(
-            img_tensor, 
-            size=(224, 224), 
-            mode='bicubic', 
-            align_corners=False
-        )
-        
-        mean = torch.tensor([0.48145466, 0.4578275, 0.40821073]).view(1, 3, 1, 1).to(self.device)
-        std = torch.tensor([0.26862954, 0.26130258, 0.27577711]).view(1, 3, 1, 1).to(self.device)
-        normalized = (resized - mean) / std
-        
-        image_features = clip_model.encode_image(normalized)
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-        
-        sim_to_target = (image_features @ target_style_embedding.T).mean()
-        loss1 = -sim_to_target
-        
-        original_prompts = [
-            "a realistic photograph",
-            "a clear digital image",
-            "photorealistic rendering",
-            "high quality photograph"
-        ]
-        original_tokens = clip.tokenize(original_prompts).to(self.device)
-        original_features = clip_model.encode_text(original_tokens)
-        original_features = original_features / original_features.norm(dim=-1, keepdim=True)
-        sim_to_original = (image_features @ original_features.T).mean()
-        loss2 = sim_to_original
-        
-        model_key = 'large' if image_features.shape[-1] == self.CLIP_LARGE_DIM else 'base'
-        
-        other_styles_loss = 0
-        for style_name, style_dict in self.style_embeddings.items():
-            if style_name != self.target_style:
-                embedding = style_dict.get(model_key)
-                if embedding is not None:
-                    sim = (image_features @ embedding.T).mean()
-                    other_styles_loss += sim
-        loss3 = other_styles_loss / max(1, len(self.style_embeddings) - 1)
-        
-        total_loss = (self.LOSS_WEIGHT_TARGET_STYLE * loss1 + 
-                     self.LOSS_WEIGHT_ORIGINAL_STYLE * loss2 + 
-                     self.LOSS_WEIGHT_OTHER_STYLES * loss3)
-        
-        return total_loss
-    
-    def multi_model_style_attack(self, img_tensor: torch.Tensor) -> torch.Tensor:
-        target_embedding_base = self.get_style_embedding(self.target_style, 'base')
-        
-        loss = self.style_loss(img_tensor, target_embedding_base, self.clip_model)
-        
-        if self.has_large:
-            target_embedding_large = self.get_style_embedding(self.target_style, 'large')
-            loss_large = self.style_loss(img_tensor, target_embedding_large, self.clip_large)
-            loss = loss + 1.5 * loss_large
-        
-        return loss
-    
-    def apply_style_shift(self, img_tensor: torch.Tensor) -> torch.Tensor:
-        perturbed = img_tensor.clone().detach()
-        momentum = torch.zeros_like(img_tensor)
-        
-        if self.verbose:
-            println(f"STATUS: Shifting style to '{self.target_style}'...")
-            println(f"STATUS: This will take 2-4 minutes...")
-        
-        best_loss = float('inf')
-        best_img = perturbed.clone()
-        
-        for i in range(self.iterations):
-            perturbed.requires_grad = True
-            
-            loss = self.multi_model_style_attack(perturbed)
-            
-            if perturbed.grad is not None:
-                perturbed.grad.zero_()
-            
-            loss.backward()
-            grad = perturbed.grad
-            
-            grad_norm = torch.mean(torch.abs(grad))
-            if grad_norm > 0:
-                grad = grad / grad_norm
-            
-            decay = self.MOMENTUM_BASE_DECAY + self.MOMENTUM_ADAPTIVE_DECAY * (i / self.iterations)
-            momentum = decay * momentum + grad
-            
-            with torch.no_grad():
-                alpha = self.STEP_SIZE_MULTIPLIER * self.intensity / self.iterations
-                perturbed = perturbed - alpha * momentum.sign()
-                perturbed = torch.clamp(perturbed, 0, 1)
-                
-                delta = perturbed - img_tensor
-                delta = torch.clamp(delta, -self.intensity, self.intensity)
-                perturbed = torch.clamp(img_tensor + delta, 0, 1)
-                
-                if loss.item() < best_loss:
-                    best_loss = loss.item()
-                    best_img = perturbed.clone()
-            
-            if self.verbose and (i + 1) % 20 == 0:
-                println(f"STATUS: Iter {i+1}/{self.iterations} | Loss: {loss.item():.4f}")
-        
-        if self.verbose:
-            println("STATUS: Style shift complete! Using best iteration.")
-        return best_img
-    
+            return self.text_encoder(tokens)[0]
+
     def protect_image(
         self, 
         input_path: str, 
@@ -304,85 +101,65 @@ class GlazeStyleProtector:
         output_quality: int = 92
     ) -> bool:
         try:
-            if self.verbose:
-                println("STATUS: Loading image...")
-            
             validate_image_path(input_path)
-            check_image_dimensions(input_path)
             
-            original_img = Image.open(input_path).convert('RGB')
+            img = Image.open(input_path).convert('RGB').resize((512, 512))
+            img_tensor = torch.from_numpy(np.array(img)).float() / 127.5 - 1.0
+            img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0).to(self.device)
+            
+            with torch.no_grad():
+                latents = self.vae.encode(img_tensor).latent_dist.sample()
+                latents = latents * 0.18215
+            
+            optimized_latents = latents.clone().detach()
+            optimized_latents.requires_grad = True
+            optimizer = torch.optim.Adam([optimized_latents], lr=0.02)
+            
+            style_emb = self._get_text_embedding(self.style_prompt)
+            
+            timesteps = torch.tensor([100], device=self.device) 
             
             if self.verbose:
-                println(f"STATUS: Size: {original_img.size[0]}x{original_img.size[1]}")
+                println("Optimizing style cloak...")
+                
+            for i in tqdm(range(self.iterations), disable=not self.verbose):
+                noise = torch.randn_like(optimized_latents)
+                noisy_latents = self.scheduler.add_noise(optimized_latents, noise, timesteps)
+                
+                noise_pred = self.unet(noisy_latents, timesteps, encoder_hidden_states=style_emb).sample
+                
+                loss_style = F.mse_loss(noise_pred, noise) 
+                
+                loss_content = F.mse_loss(optimized_latents, latents) * 5.0
+                
+                total_loss = loss_style * self.intensity + loss_content
+                
+                optimizer.zero_grad()
+                total_loss.backward()
+                optimizer.step()
+
+                if self.verbose:
+                    println(f"STATUS: Iter {i+1}/{self.iterations}")
             
-            img_array = np.array(original_img, dtype=np.float32) / 255.0
-            img_tensor = torch.from_numpy(img_array).permute(2, 0, 1).unsqueeze(0).to(self.device)
-            
-            if self.verbose:
-                println("STATUS: Applying Glaze-style protection...")
-                println(f"STATUS: Intensity={self.intensity}, Iterations={self.iterations}")
-            
-            protected_tensor = self.apply_style_shift(img_tensor)
-            
-            protected_array = protected_tensor.squeeze(0).permute(1, 2, 0).cpu().detach().numpy()
-            
-            diff = np.abs(img_array - protected_array).mean()
-            if self.verbose:
-                println(f"STATUS: Difference: {diff * 255:.2f}/255")
-            
-            protected_array = np.clip(protected_array * 255, 0, 255).astype(np.uint8)
-            protected_img = Image.fromarray(protected_array, mode='RGB')
+            with torch.no_grad():
+                optimized_latents = 1 / 0.18215 * optimized_latents
+                decoded = self.vae.decode(optimized_latents).sample
+                decoded = (decoded / 2 + 0.5).clamp(0, 1)
+                
+            protected_array = decoded.cpu().permute(0, 2, 3, 1).numpy()[0]
+            protected_img = Image.fromarray((protected_array * 255).astype(np.uint8))
             
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-            
-            if output_path.lower().endswith('.png'):
-                protected_img.save(output_path, format='PNG', compress_level=6)
-                if self.verbose:
-                    println("STATUS: Saved PNG")
-            else:
-                protected_img.save(
-                    output_path, 
-                    format='JPEG', 
-                    quality=output_quality,
-                    subsampling=2,
-                    optimize=True
-                )
-                if self.verbose:
-                    println(f"STATUS: Saved JPEG (quality={output_quality}, subsampling=4:2:0)")
+            protected_img.save(output_path, quality=output_quality)
             
             if self.verbose:
-                output_size = Path(output_path).stat().st_size / 1024
-                input_size = Path(input_path).stat().st_size / 1024
-                println(f"STATUS: File size: {input_size:.1f}KB → {output_size:.1f}KB")
-            
-            if self.verbose:
-                println("")
-                println("=== COMPLETE ===")
-                println(f"Image protected with Glaze-style '{self.target_style}' cloaking.")
-                println("")
-            
+                println("Glaze protection complete.")
             return True
             
         except Exception as e:
-            println(f"ERROR: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            println(f"Error: {e}")
             return False
 
-
-def protect_image(
-    input_path: str,
-    output_path: str,
-    target_style: str = "abstract",
-    intensity: float = 0.45,
-    iterations: int = 250,
-    output_quality: int = 92,
-    verbose: bool = True
-) -> bool:
-    protector = GlazeStyleProtector(
-        target_style=target_style,
-        intensity=intensity,
-        iterations=iterations,
-        verbose=verbose
-    )
-    return protector.protect_image(input_path, output_path, output_quality)
+def protect_image(**kwargs):
+    protector = GlazeStyleProtector(**kwargs)
+    return protector.protect_image(kwargs['input_path'], kwargs['output_path'])

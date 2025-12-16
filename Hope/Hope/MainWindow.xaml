@@ -1,8 +1,7 @@
 ﻿<Window x:Class="ArtShield.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Hope-AD | AI Image Protection" Height="600" Width="800" Background="#1E1E1E"
-        Icon="Hope.ico">
+        Title="Hope-AD | AI Image Protection" Height="600" Width="800" Background="#1E1E1E">
 
     <Grid Margin="20">
         <Grid.ColumnDefinitions>
@@ -13,8 +12,9 @@
         <StackPanel Grid.Column="0" VerticalAlignment="Center">
             <TextBlock Text="Protection Method" Foreground="White" Margin="0,0,0,5"/>
             <ComboBox x:Name="ProtectionMethodCombo" SelectedIndex="0" Padding="5" Height="30" SelectionChanged="ProtectionMethod_Changed">
-                <ComboBoxItem Content="Noise"/>
+                <ComboBoxItem Content="Nightshade"/>
                 <ComboBoxItem Content="Glaze"/>
+                <ComboBoxItem Content="Noise"/>
             </ComboBox>
             <TextBlock x:Name="TargetLabel" Text="Target Description" Foreground="White" Margin="0,15,0,5"/>
             <TextBox x:Name="TargetInput" Text=" " Padding="5" Height="50" TextWrapping="Wrap"/>

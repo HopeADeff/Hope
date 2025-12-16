@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
-"""
-Shared utility functions for Hope-AD image protection modules.
-"""
-
 import sys
 import io
+import os
+from pathlib import Path
+import io
+import os
+from pathlib import Path
 
 
 def ensure_utf8_stdout():
@@ -43,8 +43,6 @@ def validate_image_path(image_path: str) -> bool:
     Returns:
         True if valid, raises ValueError otherwise
     """
-    from pathlib import Path
-    
     path = Path(image_path)
     
     if not path.exists():
@@ -65,7 +63,6 @@ def validate_image_path(image_path: str) -> bool:
 
 def get_file_size_kb(file_path: str) -> float:
     """Get file size in kilobytes."""
-    from pathlib import Path
     return Path(file_path).stat().st_size / 1024
 
 
@@ -91,3 +88,18 @@ def check_image_dimensions(image_path: str, max_dimension: int = 4096) -> tuple:
                    f"Processing may be slow and use significant memory.")
         
         return width, height, is_large
+
+
+def get_model_path(model_name: str) -> str:
+    """
+    Get the absolute path to a model directory/file.
+    Handles both development (local) and frozen (PyInstaller) modes.
+    """
+    if getattr(sys, 'frozen', False):
+        base_path = Path(sys._MEIPASS)
+    else:
+        base_path = Path(__file__).parent.parent.parent
+        
+    model_path = base_path / "assets" / "models" / model_name
+    
+    return str(model_path)

@@ -1,6 +1,3 @@
-; Inno Setup Script for Hope-AD
-; AI Image Protection System
-
 #define MyAppName "Hope-AD"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "HopeADeff"
@@ -27,6 +24,10 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
+DisableDirPage=no
+UsePreviousAppDir=no
+DiskSpanning=yes
+DiskSliceSize=2100000000
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -36,13 +37,13 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; WPF Application
-Source: "D:\After\Hope\Hope\Hope\bin\Release\net10.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\After\Hope\Hope\Hope\bin\Release\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Python Engine (bundled)
 Source: "D:\After\Hope\dist\engine\*"; DestDir: "{app}\engine"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Documentation
 Source: "D:\After\Hope\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\After\Hope\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\After\Hope\USAGE_GUIDE.md"; DestDir: "{app}"; Flags: ignoreversion
+
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

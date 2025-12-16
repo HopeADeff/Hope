@@ -10,3 +10,10 @@ git+https://github.com/openai/CLIP.git
 # Required for full functionality
 scipy>=1.7.0          # Frequency analysis, DCT steganography
 PyWavelets>=1.4.0     # DWT watermarking
+
+# Stable Diffusion / Nightshade dependencies
+diffusers>=0.20.0
+transformers>=4.30.0
+accelerate>=0.20.0
+safetensors>=0.3.0
+omegaconf>=2.3.0

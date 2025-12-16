@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 
@@ -19,16 +20,33 @@ namespace ArtShield
             InitializeComponent();
         }
 
-        private void ProtectionMethod_Changed(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ProtectionMethod_Changed(object sender, SelectionChangedEventArgs e)
         {
             if (ProtectionMethodCombo == null) return;
             
-            bool isGlazeMethod = ProtectionMethodCombo.SelectedIndex == 1;
-            
-            if (TargetLabel != null) TargetLabel.Visibility = (isGlazeMethod || ProtectionMethodCombo.SelectedIndex == 2) ? Visibility.Collapsed : Visibility.Visible;
-            if (TargetInput != null) TargetInput.Visibility = (isGlazeMethod || ProtectionMethodCombo.SelectedIndex == 2) ? Visibility.Collapsed : Visibility.Visible;
-            if (StyleLabel != null) StyleLabel.Visibility = isGlazeMethod ? Visibility.Visible : Visibility.Collapsed;
-            if (TargetStyleCombo != null) TargetStyleCombo.Visibility = isGlazeMethod ? Visibility.Visible : Visibility.Collapsed;
+            if (TargetInput == null || TargetStyleCombo == null) return;
+
+
+            int index = ProtectionMethodCombo.SelectedIndex;
+            if (index == 0) // Nightshade
+            {
+                TargetLabel.Text = "Input";
+                TargetInput.Visibility = Visibility.Visible;
+                TargetStyleCombo.Visibility = Visibility.Collapsed;
+                if (string.IsNullOrWhiteSpace(TargetInput.Text)) TargetInput.Text = "noise";
+            }
+            else if (index == 1) // Glaze
+            {
+                TargetLabel.Text = "Target Style";
+                TargetInput.Visibility = Visibility.Collapsed;
+                TargetStyleCombo.Visibility = Visibility.Visible;
+            }
+            else // Noise
+            {
+                TargetLabel.Text = "Target Description";
+                TargetInput.Visibility = Visibility.Visible;
+                TargetStyleCombo.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void SelectImage_Click(object sender, RoutedEventArgs e)
@@ -94,8 +112,8 @@ namespace ArtShield
             double intensity = IntensitySlider.Value;
             int iterations = (int)IterationSlider.Value;
             int quality = (int)QualitySlider.Value;
+            bool useNightshadeMethod = ProtectionMethodCombo.SelectedIndex == 0;
             bool useGlazeMethod = ProtectionMethodCombo.SelectedIndex == 1;
-            bool useNightshadeMethod = ProtectionMethodCombo.SelectedIndex == 2;
             string targetStyle = "abstract"; 
             
             if (useGlazeMethod && TargetStyleCombo.SelectedItem != null)
@@ -137,9 +155,9 @@ namespace ArtShield
                     }
                     else if (useNightshadeMethod)
                     {
+                        string poisonTarget = string.IsNullOrWhiteSpace(TargetInput.Text) ? "noise" : TargetInput.Text.Trim();
                         args += " --nightshade";
-                        // Default concepts for now
-                        args += " --source-concept artwork --target-concept noise";
+                        args += $" --source-concept artwork --target-concept \"{poisonTarget}\"";
                     }
                     else
                     {
@@ -210,8 +228,6 @@ namespace ArtShield
                         {
                             string status = ea.Data.Length > 7 ? ea.Data.Substring(7).Trim() : string.Empty;
                             Dispatcher.Invoke(() => StatusText.Text = status);
-                            
-                            // Update progress bar based on iteration status
                             if (status.Contains("Iter "))
                             {
                                 try
@@ -221,15 +237,17 @@ namespace ArtShield
                                     {
                                         int current = int.Parse(match.Groups[1].Value);
                                         int total = int.Parse(match.Groups[2].Value);
+                                        double percent = (double)current / total * 100.0;
                                         Dispatcher.Invoke(() =>
                                         {
+                                            StatusText.Text = $"{status} ({percent:F0}%)";
                                             ProgBar.IsIndeterminate = false;
                                             ProgBar.Maximum = total;
                                             ProgBar.Value = current;
                                         });
                                     }
                                 }
-                                catch { /* ignore parsing errors */ }
+                                catch { }
                             }
                         }
                     };
@@ -250,8 +268,6 @@ namespace ArtShield
                     stdErr = errorBuilder.ToString();
                 }
             });
-
-            // Reset progress bar
             ProgBar.IsIndeterminate = false;
             ProgBar.Value = 0;
 
