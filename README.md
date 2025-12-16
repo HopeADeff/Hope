@@ -333,11 +333,12 @@ A: Việc chuyển app dựa hoàn toàn trên nền tảng WPF/CSharp lên hệ
 
 ## Dung lượng Lưu trữ (Disk Space)
 
-| Phiên bản                      | Kích thước   | Ghi chú                                                        |
-| ------------------------------ | ------------ | -------------------------------------------------------------- |
-| **Installer (.exe)**           | **~2.76 MB** | Chưa bao gồm các binary cần thiết của Python, môi trường, etc. |
-| **Source Code**                | **~1 MB**    | Chưa bao gồm venv                                              |
-| **Installed (Full/.exe/.bin)** | **~7.28 GB** | Cả file installation `setup.exe` chính và dependencies         |
+| Phiên bản                      | Kích thước   | Ghi chú                                                          |
+| ------------------------------ | ------------ | ---------------------------------------------------------------- |
+| **Installer (.exe)**           | **~2.76 MB** | Chưa bao gồm các binary cần thiết của Python, môi trường, etc.   |
+| **Source Code**                | **~1 MB**    | Chưa bao gồm venv                                                |
+| **Installer (Full/.exe/.bin)** | **~7.28 GB** | Cả file installation `setup.exe` chính và dependencies           |
+| **Installed (Full)**           | **~4.75 GB** | App hoàn chỉnh về cả môi trường .NET và Python; giao diện; logic |
 
 ## Tài liệu Tham khảo & Ghi nhận (References & Credits)
 
