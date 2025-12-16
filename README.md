@@ -42,7 +42,7 @@ Trong đó:
 
 - $\mathcal{E}(\cdot)$ là hàm ánh xạ của Feature Extractor (ví dụ: CLIP Vision Encoder).
 - $x_{\text{target}}$ là hình ảnh neo (anchor image) đại diện cho $c_{\text{target}}$.
-- $||\delta||_p$ là ràng buộc chuẩn $L_{p}$ (thường là $L_{\infty}$ hoặc $L_{2}$) để đảm bảo chất lượng thị giác (perceptual quality).
+- $\lVert \delta \rVert_p$ là ràng buộc chuẩn $L_p$ (thường là $L_\infty$ hoặc $L_2$) để đảm bảo chất lượng thị giác (perceptual quality).
 
 **Hiệu quả:** Khi mô hình được fine-tune trên dữ liệu nhiễm độc Nightshade, gradient descent sẽ tối ưu hóa trọng số mô hình theo hướng sai lệch, làm hỏng khả năng biểu diễn đặc trưng của khái niệm đó.
 
