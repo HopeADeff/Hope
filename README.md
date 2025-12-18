@@ -12,7 +12,7 @@ Dự án **Hope-AD** (Hope Adversarial Defense) cung cấp một bộ công cụ
 >
 > [Liên kết MediaFire](https://www.mediafire.com/file/a4wbje98ix43bay/hope_ad_setup_v1.0.0_win10-11x64.zip/file)
 
-## Cấu hình phần cứng để có thể sử dụng phần mềm (hệ máy Windows 10/11):
+## Cấu hình phần cứng để có thể sử dụng phần mềm (hệ máy Windows 10/11 64bits):
 
 | Mô tả phần cứng | Tối thiểu          | Khuyến nghị             |
 | --------------- | ------------------ | ----------------------- |
