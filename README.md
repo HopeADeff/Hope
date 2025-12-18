@@ -9,6 +9,8 @@ Dự án **Hope-AD** (Hope Adversarial Defense) cung cấp một bộ công cụ
 > **Tải xuống Bộ Cài đặt (Window Installer):**
 >
 > [Liên kết Google Drive](https://drive.google.com/drive/folders/1HCHGcMTn8I07X_6m4h1vv75ZJML2jzQM?usp=drive_link)
+>
+> [Liên kết MediaFire](https://www.mediafire.com/file/a4wbje98ix43bay/hope_ad_setup_v1.0.0_win10-11x64.zip/file)
 
 ---
 
@@ -86,6 +88,11 @@ Trong đó:
             <li><strong>Prompt:</strong> 1 girl, solo, hair ornament</li>
             <li><strong>Prompt LoRA 1:</strong> 1 girl, solo, hair ornament, &lt;LoRA:clean:2&gt; fcc_clean</li>
             <li><strong>Prompt LoRA 2:</strong> 1 girl, solo, hair ornament, &lt;LoRA:naixay:2&gt; fcc_naixay</li>
+            <br>
+            <li>
+              <strong>Lưu ý:</strong>
+              <p>Đây chỉ là kết quả sau khi đã feed ảnh đã được phủ lớp bảo vệ poison vào AI, kết quả như mong muốn ở việc AI không thể nhại lại, thậm chí hiểu lầm ảnh gốc.</p>
+            </li>
           </ul>
         </td>
       </tr>
@@ -136,6 +143,11 @@ Trong đó:
             <li><strong>Prompt:</strong> 1 girl, solo</li>
             <li><strong>Prompt LoRA 1:</strong> 1 girl, solo, &lt;LoRA:clean:2&gt; fcc_clean</li>
             <li><strong>Prompt LoRA 2:</strong> 1 girl, solo, &lt;LoRA:glaze:2&gt; fcc_glaze</li>
+            <br>
+            <li>
+              <strong>Lưu ý:</strong>
+              <p>Đây chỉ là kết quả sau khi đã feed ảnh đã được phủ lớp bảo vệ poison vào AI, kết quả như mong muốn ở việc AI không thể nhại lại, thậm chí hiểu lầm ảnh gốc.</p>
+            </li>
           </ul>
         </td>
       </tr>
@@ -207,7 +219,14 @@ Kết quả là mô hình AI sẽ "nhìn thấy" một phong cách hoàn toàn k
         <td colspan="3" align="left" style="padding: 10px;">
           <strong>Giải thích</strong>
           <ul>
-            <li><strong>Glaze:</strong> Ảnh gốc (Clean) hoạt động bình thường với IMG2IMG. Ngược lại, ảnh đã qua xử lý Glaze chứa lớp nhiễu "style cloak" khiến AI hiểu sai hoàn toàn ngữ cảnh, dẫn đến kết quả đầu ra bị méo mó và mất đi các chi tiết nghệ thuật ban đầu.</li>
+            <li>
+              <strong>Glaze:</strong> Ảnh gốc (Clean) hoạt động bình thường với IMG2IMG. Ngược lại, ảnh đã qua xử lý Glaze chứa lớp nhiễu "style cloak" khiến AI hiểu sai hoàn toàn ngữ cảnh, dẫn đến kết quả đầu ra bị méo mó và mất đi các chi tiết nghệ thuật ban đầu.
+            </li>
+            <br>
+            <li>
+              <strong>Lưu ý:</strong>
+              <p>Đây chỉ là kết quả sau khi đã feed ảnh đã được phủ lớp bảo vệ glaze vào AI, kết quả như mong muốn ở việc AI không thể nhại lại.</p>
+            </li>
           </ul>
         </td>
       </tr>
