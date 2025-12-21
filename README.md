@@ -2,7 +2,7 @@
 
 Dự án **Hope-AD** (Hope Adversarial Defense) cung cấp một bộ công cụ bảo vệ bản quyền hình ảnh, được thiết kế để chống lại việc khai thác ngoài ý muốn bởi các mô hình Generative AI (Stable Diffusion, LoRA, etc.). Hệ thống tích hợp hai phương pháp phòng vệ dựa trên nhiễu adversarial perturbations, tiêu biểu là **Nightshade** và **Glaze**.
 
-**Phiên bản hiện tại:** 1.0.0
+**Phiên bản hiện tại:** 1.1.1
 
 > [!NOTE]
 >
@@ -10,7 +10,7 @@ Dự án **Hope-AD** (Hope Adversarial Defense) cung cấp một bộ công cụ
 >
 > [Liên kết Google Drive](https://drive.google.com/drive/folders/1HCHGcMTn8I07X_6m4h1vv75ZJML2jzQM?usp=drive_link)
 >
-> [Liên kết MediaFire](https://www.mediafire.com/file/a4wbje98ix43bay/hope_ad_setup_v1.0.0_win10-11x64.zip/file)
+> [Liên kết MediaFire](https://www.mediafire.com/file/rv5nzhu0aa7gbm2/hope_ad_setup_v1.1.1_win10-11x64.zip/file)
 
 ## Cấu hình phần cứng để có thể sử dụng phần mềm (hệ máy Windows 10/11 64bits):
 
@@ -324,12 +324,12 @@ Delta (δ) = Ảnh_Bảo_Vệ_512px - Ảnh_Gốc_Resize_512px
 
 Slider mới cho phép điều chỉnh **thời gian xử lý** vs **mức độ bảo vệ**:
 
-| Mức | Tên           | Iterations | Thời gian  |
-| --- | ------------- | ---------- | ---------- |
-| 1   | Nhanh         | 50         | ~20 phút   |
-| 2   | **Mặc định**  | 100        | ~40 phút   |
-| 3   | Chậm          | 200        | ~80 phút   |
-| 4   | Chậm nhất     | 250        | ~160 phút  |
+| Mức | Tên          | Iterations | Thời gian |
+| --- | ------------ | ---------- | --------- |
+| 1   | Nhanh        | 50         | ~20 phút  |
+| 2   | **Mặc định** | 100        | ~40 phút  |
+| 3   | Chậm         | 200        | ~80 phút  |
+| 4   | Chậm nhất    | 250        | ~160 phút |
 
 > **Lưu ý:** Tính năng này áp dụng cho cả Glaze và Nightshade.
 
@@ -431,8 +431,8 @@ A: Việc chuyển app dựa hoàn toàn trên nền tảng WPF/CSharp lên hệ
 | ------------------------------ | ------------ | ---------------------------------------------------------------- |
 | **Installer (.exe)**           | **~2.76 MB** | Chưa bao gồm các binary cần thiết của Python, môi trường, etc.   |
 | **Source Code**                | **~1 MB**    | Chưa bao gồm venv                                                |
-| **Installer (Full/.exe/.bin)** | **~7.28 GB** | Cả file installation `setup.exe` chính và dependencies           |
-| **Installed (Full)**           | **~4.75 GB** | App hoàn chỉnh về cả môi trường .NET và Python; giao diện; logic |
+| **Installer (Full/.exe/.bin)** | **~3.63 GB** | Cả file installation `setup.exe` chính và dependencies           |
+| **Installed (Full)**           | **~4.68 GB** | App hoàn chỉnh về cả môi trường .NET và Python; giao diện; logic |
 
 ## Tài liệu Tham khảo & Ghi nhận (References & Credits)
 
