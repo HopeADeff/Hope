@@ -79,38 +79,29 @@ namespace ArtShield
             string outputPath = Path.Combine(directory, outputFileName);
             string appFolder = AppDomain.CurrentDomain.BaseDirectory;
             string engineExePath = Path.Combine(appFolder, "engine", "engine.exe");
-            string engineScriptPath = Path.Combine(appFolder, "engine.py");
-            string engineInterpreter = "python";
-            string? searchDir = appFolder;
-            for (int i = 0; i < 7 && searchDir != null; i++)
+            
+            // STRICT CHECK: Only use engine.exe
+            if (!File.Exists(engineExePath))
             {
-                string venvPython = Path.Combine(searchDir, "venv", "Scripts", "python.exe");
-                if (File.Exists(venvPython))
-                {
-                    engineInterpreter = venvPython;
-                    break;
-                }
-                searchDir = Path.GetDirectoryName(searchDir);
-            }
-            engineInterpreter = Environment.GetEnvironmentVariable("ENGINE_PYTHON") ?? engineInterpreter;
-
-            bool scriptAvailable = File.Exists(engineScriptPath);
-            bool exeAvailable = File.Exists(engineExePath);
-
-            if (!scriptAvailable && !exeAvailable)
-            {
-                MessageBox.Show($"Engine file not found in: {appFolder}\nPlace engine file there or set ENGINE_PYTHON environment variable.");
+                MessageBox.Show($"Engine NOT found!\nLooking for: {engineExePath}\n\nCurrent Directory: {Environment.CurrentDirectory}\nBase Directory: {appFolder}");
                 return;
             }
 
-            // Debug: Check if using venv or system Python
-            bool usingVenv = engineInterpreter.Contains("venv");
-            System.Diagnostics.Debug.WriteLine($"[Hope-AD] Python: {engineInterpreter}, UsingVenv: {usingVenv}");
-
-
+            // Get UI Variables
             string target = TargetInput.Text;
             double intensity = IntensitySlider.Value;
-            int iterations = (int)IterationSlider.Value;
+            int iterations = 100; // Default, will be overridden by Render Quality
+            
+            // Override iterations based on Render Quality selection
+            int renderQuality = (int)RenderQualitySlider.Value;
+            switch (renderQuality)
+            {
+                case 1: iterations = 50; break;   // Faster
+                case 2: iterations = 100; break;  // DEFAULT
+                case 3: iterations = 200; break;  // Slower
+                case 4: iterations = 250; break;  // Slowest
+            }
+            
             int quality = (int)QualitySlider.Value;
             bool useNightshadeMethod = ProtectionMethodCombo.SelectedIndex == 0;
             bool useGlazeMethod = ProtectionMethodCombo.SelectedIndex == 1;
@@ -125,14 +116,7 @@ namespace ArtShield
                 }
             }
 
-            string targetFilePath = null;
-            if (scriptAvailable)
-            {
-                targetFilePath = Path.Combine(Path.GetTempPath(), $"{fileNameNoExt}_target_{Guid.NewGuid()}.txt");
-                File.WriteAllText(targetFilePath, target, Encoding.UTF8);
-            }
-
-            string methodName = useGlazeMethod ? "Glaze-Style" : "Adversarial";
+            string methodName = useGlazeMethod ? "Glaze-Style" : (useNightshadeMethod ? "Nightshade" : "Adversarial");
             StatusText.Text = $"Starting {methodName} (Intensity: {intensity:F2}, Iterations: {iterations}, Quality: {quality})...";
             RunBtn.IsEnabled = false;
             ProgBar.IsIndeterminate = true;
@@ -143,77 +127,37 @@ namespace ArtShield
 
             await Task.Run(() =>
             {
-                ProcessStartInfo start;
-
-                if (scriptAvailable)
+                string args = $"--input \"{selectedFilePath}\" --output \"{outputPath}\"";
+                
+                if (useGlazeMethod)
                 {
-                    string args = $"\"{engineScriptPath}\" --input \"{selectedFilePath}\" --output \"{outputPath}\"";
-                    
-                    if (useGlazeMethod)
-                    {
-                        args += $" --target-style {targetStyle}";
-                    }
-                    else if (useNightshadeMethod)
-                    {
-                        string poisonTarget = string.IsNullOrWhiteSpace(TargetInput.Text) ? "noise" : TargetInput.Text.Trim();
-                        args += " --nightshade";
-                        args += $" --source-concept artwork --target-concept \"{poisonTarget}\"";
-                    }
-                    else
-                    {
-                        args += $" --target-file \"{targetFilePath}\"";
-                    }
-                    
-                    args += $" --intensity {intensity.ToString(CultureInfo.InvariantCulture)}";
-                    args += $" --iterations {iterations}";
-                    args += $" --output-quality {quality}";
-                    
-                    start = new ProcessStartInfo
-                    {
-                        FileName = engineInterpreter,
-                        Arguments = args,
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = Encoding.UTF8,
-                        StandardErrorEncoding = Encoding.UTF8
-                    };
+                    args += $" --target-style {targetStyle}";
+                }
+                else if (useNightshadeMethod)
+                {
+                     args += " --nightshade";
+                     args += " --source-concept artwork --target-concept noise";
                 }
                 else
                 {
-                    string args = $"--input \"{selectedFilePath}\" --output \"{outputPath}\"";
-                    
-                    if (useGlazeMethod)
-                    {
-                        args += $" --target-style {targetStyle}";
-                    }
-                    else if (useNightshadeMethod)
-                    {
-                         args += " --nightshade";
-                         args += " --source-concept artwork --target-concept noise";
-                    }
-                    else
-                    {
-                        args += $" --target \"{target}\"";
-                    }
-                    
-                    args += $" --intensity {intensity.ToString(CultureInfo.InvariantCulture)}";
-                    args += $" --iterations {iterations}";
-                    args += $" --output-quality {quality}";
-                    
-                    start = new ProcessStartInfo
-                    {
-                        FileName = engineExePath,
-                        Arguments = args,
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = Encoding.UTF8,
-                        StandardErrorEncoding = Encoding.UTF8
-                    };
+                    args += $" --target \"{target}\"";
                 }
+                
+                args += $" --intensity {intensity.ToString(CultureInfo.InvariantCulture)}";
+                args += $" --iterations {iterations}";
+                args += $" --output-quality {quality}";
+                
+                var start = new ProcessStartInfo
+                {
+                    FileName = engineExePath,
+                    Arguments = args,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8
+                };
 
                 using (var process = new Process { StartInfo = start, EnableRaisingEvents = true })
                 {
@@ -224,9 +168,13 @@ namespace ArtShield
                     {
                         if (ea.Data == null) return;
                         outputBuilder.AppendLine(ea.Data);
-                        if (ea.Data.StartsWith("STATUS:"))
+                        bool isStatus = ea.Data.StartsWith("STATUS:");
+                        bool isLoading = ea.Data.Contains("Loading models");
+                        bool isDevice = ea.Data.Contains("Device:");
+                        
+                        if (isStatus || isLoading || isDevice)
                         {
-                            string status = ea.Data.Length > 7 ? ea.Data.Substring(7).Trim() : string.Empty;
+                            string status = isStatus ? (ea.Data.Length > 7 ? ea.Data.Substring(7).Trim() : string.Empty) : ea.Data;
                             Dispatcher.Invoke(() => StatusText.Text = status);
                             if (status.Contains("Iter "))
                             {
@@ -268,20 +216,15 @@ namespace ArtShield
                     stdErr = errorBuilder.ToString();
                 }
             });
+            
             ProgBar.IsIndeterminate = false;
             ProgBar.Value = 0;
-
-            if (!string.IsNullOrEmpty(targetFilePath) && File.Exists(targetFilePath))
-            {
-                try { File.Delete(targetFilePath); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to delete temp file: {ex.Message}"); }
-            }
 
             if (exitCode != 0)
             {
                 StatusText.Text = $"Engine error (code {exitCode})";
                 RunBtn.IsEnabled = true;
-                string pythonInfo = usingVenv ? $"venv Python: {engineInterpreter}" : "System Python (venv not found!)";
-                MessageBox.Show($"Engine exited with code {exitCode}.\n\nPython: {pythonInfo}\n\nStderr:\n{stdErr}");
+                MessageBox.Show($"Engine exited with code {exitCode}.\n\nStderr:\n{stdErr}");
                 return;
             }
 
@@ -289,18 +232,7 @@ namespace ArtShield
             {
                 StatusText.Text = "Output file not found.";
                 RunBtn.IsEnabled = true;
-                string dir = Path.GetDirectoryName(outputPath) ?? string.Empty;
-                string[] files = Array.Empty<string>();
-                try
-                {
-                    files = Directory.GetFiles(dir);
-                }
-                catch { /* ignore directory enumeration errors for diagnostics */ }
-
-                var listing = new StringBuilder();
-                foreach (var f in files) listing.AppendLine(f);
-
-                MessageBox.Show($"Expected output file not found: {outputPath}\n\nEngine stderr:\n{stdErr}\n\nDirectory listing:\n{listing}");
+                MessageBox.Show($"Expected output file not found: {outputPath}\n\nEngine stderr:\n{stdErr}");
                 return;
             }
 

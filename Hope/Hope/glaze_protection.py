@@ -1,5 +1,6 @@
 
 import sys
+import os
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -55,28 +56,36 @@ class GlazeStyleProtector:
             println(f"Target Style: '{target_style}'")
 
         model_path = get_model_path("sd-v1-5")
+        local_files_only = True
+        
+        if not os.path.exists(model_path) or not (Path(model_path) / "config.json").exists():
+             if verbose:
+                 println(f"Local model not found at {model_path}. Fallback to HuggingFace (runwayml/stable-diffusion-v1-5)")
+             model_path = "runwayml/stable-diffusion-v1-5"
+             local_files_only = False
+        
         if verbose:
-            println(f"Loading models from: {model_path}")
+            println(f"Loading models from: {model_path} (local_only={local_files_only})")
             
         try:
             self.vae = AutoencoderKL.from_pretrained(
-                model_path, subfolder="vae", local_files_only=True
+                model_path, subfolder="vae", local_files_only=local_files_only
             ).to(self.device)
             
             self.tokenizer = CLIPTokenizer.from_pretrained(
-                model_path, subfolder="tokenizer", local_files_only=True
+                model_path, subfolder="tokenizer", local_files_only=local_files_only
             )
             
             self.text_encoder = CLIPTextModel.from_pretrained(
-                model_path, subfolder="text_encoder", local_files_only=True
+                model_path, subfolder="text_encoder", local_files_only=local_files_only
             ).to(self.device)
             
             self.unet = UNet2DConditionModel.from_pretrained(
-                model_path, subfolder="unet", local_files_only=True
+                model_path, subfolder="unet", local_files_only=local_files_only
             ).to(self.device)
             
             self.scheduler = PNDMScheduler.from_pretrained(
-                model_path, subfolder="scheduler", local_files_only=True
+                model_path, subfolder="scheduler", local_files_only=local_files_only
             )
             
             self.vae.requires_grad_(False)
@@ -103,7 +112,18 @@ class GlazeStyleProtector:
         try:
             validate_image_path(input_path)
             
-            img = Image.open(input_path).convert('RGB').resize((512, 512))
+            img = Image.open(input_path).convert('RGB')
+            original_size = img.size
+            
+            ratio = min(512 / original_size[0], 512 / original_size[1])
+            new_width = int(original_size[0] * ratio)
+            new_height = int(original_size[1] * ratio)
+            
+            new_width = (new_width // 8) * 8
+            new_height = (new_height // 8) * 8
+            
+            img = img.resize((new_width, new_height), Image.LANCZOS)
+            
             img_tensor = torch.from_numpy(np.array(img)).float() / 127.5 - 1.0
             img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0).to(self.device)
             
@@ -142,12 +162,26 @@ class GlazeStyleProtector:
                     println(f"STATUS: Iter {i+1}/{self.iterations}")
             
             with torch.no_grad():
-                optimized_latents = 1 / 0.18215 * optimized_latents
-                decoded = self.vae.decode(optimized_latents).sample
-                decoded = (decoded / 2 + 0.5).clamp(0, 1)
+                rec_latents = 1 / 0.18215 * latents
+                rec_decoded = self.vae.decode(rec_latents).sample
+                rec_decoded = (rec_decoded / 2 + 0.5).clamp(0, 1)
                 
-            protected_array = decoded.cpu().permute(0, 2, 3, 1).numpy()[0]
-            protected_img = Image.fromarray((protected_array * 255).astype(np.uint8))
+                protected_latents = 1 / 0.18215 * optimized_latents
+                prot_decoded = self.vae.decode(protected_latents).sample
+                prot_decoded = (prot_decoded / 2 + 0.5).clamp(0, 1)
+                
+            rec_array = rec_decoded.cpu().permute(0, 2, 3, 1).numpy()[0]
+            prot_array = prot_decoded.cpu().permute(0, 2, 3, 1).numpy()[0]
+            
+            delta = prot_array - rec_array 
+            delta_img = Image.fromarray((delta * 127.5 + 127.5).astype(np.uint8))
+            delta_img = delta_img.resize(original_size, Image.LANCZOS)
+            delta_upscaled = (np.array(delta_img).astype(np.float32) / 127.5) - 1.0
+            original_img = Image.open(input_path).convert('RGB')
+            original_array = np.array(original_img).astype(np.float32) / 255.0
+            final_array = original_array + delta_upscaled
+            final_array = np.clip(final_array, 0, 1)
+            protected_img = Image.fromarray((final_array * 255).astype(np.uint8))
             
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
             protected_img.save(output_path, quality=output_quality)

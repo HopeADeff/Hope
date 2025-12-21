@@ -73,7 +73,6 @@ def test_style_embeddings_structure():
 
 
 def test_get_style_embedding():
-    """Test 2: Verify get_style_embedding works correctly."""
     print("=" * 60)
     print("Test 2: Get Style Embedding")
     print("=" * 60)
@@ -110,7 +109,6 @@ def test_get_style_embedding():
 
 
 def test_style_loss_dimensions():
-    """Test 3: Verify style_loss works with both models."""
     print("=" * 60)
     print("Test 3: Style Loss Dimension Matching")
     print("=" * 60)
@@ -149,7 +147,6 @@ def test_style_loss_dimensions():
 
 
 def test_multi_model_style_attack():
-    """Test 4: Verify multi_model_style_attack works without dimension errors."""
     print("=" * 60)
     print("Test 4: Multi-Model Style Attack")
     print("=" * 60)
@@ -183,7 +180,6 @@ def test_multi_model_style_attack():
 
 
 def test_full_protection_pipeline():
-    """Test 5: Full image protection pipeline (minimal)."""
     print("=" * 60)
     print("Test 5: Full Protection Pipeline")
     print("=" * 60)
@@ -234,7 +230,6 @@ def test_full_protection_pipeline():
 
 
 def run_all_tests():
-    """Run all tests."""
     print("\n" + "=" * 60)
     print("GLAZE PROTECTION MODULE - DIMENSION FIX TEST SUITE")
     print("=" * 60 + "\n")

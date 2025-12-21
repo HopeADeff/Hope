@@ -1,5 +1,5 @@
-
 import sys
+import os
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -46,28 +46,36 @@ class NightshadeProtector:
             println(f"Poisoning: '{source_concept}' -> '{target_concept}'")
 
         model_path = get_model_path("sd-v1-5")
+        local_files_only = True
+        
+        if not os.path.exists(model_path):
+             if verbose:
+                 println(f"Local model not found at {model_path}. Fallback to HuggingFace (runwayml/stable-diffusion-v1-5)")
+             model_path = "runwayml/stable-diffusion-v1-5"
+             local_files_only = False
+
         if verbose:
             println(f"Loading models from: {model_path}")
             
         try:
             self.vae = AutoencoderKL.from_pretrained(
-                model_path, subfolder="vae", local_files_only=True
+                model_path, subfolder="vae", local_files_only=local_files_only
             ).to(self.device)
             
             self.tokenizer = CLIPTokenizer.from_pretrained(
-                model_path, subfolder="tokenizer", local_files_only=True
+                model_path, subfolder="tokenizer", local_files_only=local_files_only
             )
             
             self.text_encoder = CLIPTextModel.from_pretrained(
-                model_path, subfolder="text_encoder", local_files_only=True
+                model_path, subfolder="text_encoder", local_files_only=local_files_only
             ).to(self.device)
             
             self.unet = UNet2DConditionModel.from_pretrained(
-                model_path, subfolder="unet", local_files_only=True
+                model_path, subfolder="unet", local_files_only=local_files_only
             ).to(self.device)
             
             self.scheduler = PNDMScheduler.from_pretrained(
-                model_path, subfolder="scheduler", local_files_only=True
+                model_path, subfolder="scheduler", local_files_only=local_files_only
             )
             
             self.vae.requires_grad_(False)
@@ -152,7 +160,18 @@ class NightshadeProtector:
         try:
             validate_image_path(input_path)
             
-            img = Image.open(input_path).convert('RGB').resize((512, 512)) 
+            img = Image.open(input_path).convert('RGB')
+            original_size = img.size
+            
+            ratio = min(512 / original_size[0], 512 / original_size[1])
+            new_width = int(original_size[0] * ratio)
+            new_height = int(original_size[1] * ratio)
+            
+            new_width = (new_width // 8) * 8
+            new_height = (new_height // 8) * 8
+            
+            img = img.resize((new_width, new_height), Image.LANCZOS)
+             
             img_tensor = torch.from_numpy(np.array(img)).float() / 127.5 - 1.0 
             img_tensor = img_tensor.permute(2, 0, 1).unsqueeze(0)
             
@@ -161,8 +180,25 @@ class NightshadeProtector:
             
             protected_tensor = self.fit_image_to_concept(img_tensor)
             
-            protected_array = protected_tensor.cpu().permute(0, 2, 3, 1).numpy()[0]
-            protected_img = Image.fromarray((protected_array * 255).astype(np.uint8))
+            with torch.no_grad():
+                rec_latents = self.vae.encode(img_tensor.to(self.device)).latent_dist.sample() * 0.18215
+                rec_tensor = self.vae.decode(1 / 0.18215 * rec_latents).sample
+                rec_tensor = (rec_tensor / 2 + 0.5).clamp(0, 1) 
+            
+            prot_array = protected_tensor.cpu().permute(0, 2, 3, 1).numpy()[0]
+            rec_array = rec_tensor.cpu().permute(0, 2, 3, 1).numpy()[0]
+            
+            delta = prot_array - rec_array
+            
+            delta_img = Image.fromarray((delta * 127.5 + 127.5).astype(np.uint8)) 
+            delta_img = delta_img.resize(original_size, Image.LANCZOS)
+            delta_upscaled = (np.array(delta_img).astype(np.float32) / 127.5) - 1.0
+            
+            original_array = np.array(Image.open(input_path).convert('RGB')).astype(np.float32) / 255.0
+            final_array = original_array + delta_upscaled
+            final_array = np.clip(final_array, 0, 1)
+            
+            protected_img = Image.fromarray((final_array * 255).astype(np.uint8))
             
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
             protected_img.save(output_path, quality=output_quality)

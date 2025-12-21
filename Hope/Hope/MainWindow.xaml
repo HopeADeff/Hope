@@ -59,33 +59,6 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="Iterations" Foreground="White" VerticalAlignment="Center"/>
-                <Border Grid.Column="1" Background="#4444FF" CornerRadius="3" Padding="6,3">
-                    <TextBlock Text="{Binding Value, ElementName=IterationSlider, StringFormat=F0}" 
-                               Foreground="White"
-                               FontWeight="Bold"
-                               FontSize="13"/>
-                </Border>
-            </Grid>
-
-            <Slider x:Name="IterationSlider" Minimum="10" Maximum="250" Value="100" TickFrequency="10" IsSnapToTickEnabled="True"/>
-
-            <Grid Margin="0,2,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="10 (fast)" FontSize="9" Foreground="Gray"/>
-                <TextBlock Grid.Column="1" Text="30" FontSize="9" Foreground="LightBlue" HorizontalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Text="250 (strong)" FontSize="9" Foreground="Gray" HorizontalAlignment="Right"/>
-            </Grid>
-            <Grid Margin="0,15,0,5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
                 <TextBlock Grid.Column="0" Text="Output Quality" Foreground="White" VerticalAlignment="Center"/>
                 <Border Grid.Column="1" Background="#44AA44" CornerRadius="3" Padding="6,3">
                     <TextBlock Text="{Binding Value, ElementName=QualitySlider, StringFormat=F0}" 
@@ -107,6 +80,38 @@
                 <TextBlock Grid.Column="1" Text="92" FontSize="9" Foreground="LightGreen" HorizontalAlignment="Center"/>
                 <TextBlock Grid.Column="2" Text="98 (best)" FontSize="9" Foreground="Gray" HorizontalAlignment="Right"/>
             </Grid>
+
+            <!-- Render Quality Section -->
+            <TextBlock Text="Chất lượng Render" Foreground="White" FontWeight="Bold" Margin="0,18,0,3"/>
+            <TextBlock Text="Thời gian xử lý bảo vệ ảnh (Glaze/Nightshade). Mức cao hơn cho kết quả tốt hơn nhưng tốn thời gian hơn." 
+                       Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"/>
+            <Slider x:Name="RenderQualitySlider" Minimum="1" Maximum="4" Value="2" TickFrequency="1" IsSnapToTickEnabled="True"
+                    Foreground="#3399FF"/>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Faster" FontSize="10" Foreground="Gray"/>
+                    <TextBlock Text="(~20 mins)" FontSize="9" Foreground="DimGray"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                    <TextBlock Text="DEFAULT" FontSize="10" Foreground="White" FontWeight="Bold"/>
+                    <TextBlock Text="(~40 mins)" FontSize="9" Foreground="Gray"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                    <TextBlock Text="Slower" FontSize="10" Foreground="Gray"/>
+                    <TextBlock Text="(~80 mins)" FontSize="9" Foreground="DimGray"/>
+                </StackPanel>
+                <StackPanel Grid.Column="3" HorizontalAlignment="Right">
+                    <TextBlock Text="Slowest" FontSize="10" Foreground="Gray"/>
+                    <TextBlock Text="(~160 mins)" FontSize="9" Foreground="DimGray"/>
+                </StackPanel>
+            </Grid>
+
             <Button x:Name="SelectBtn" Content="Select Image" Click="SelectImage_Click" 
                     Margin="0,20,0,0" Padding="10" 
                     Background="#333333" Foreground="White" BorderBrush="#555555"/>

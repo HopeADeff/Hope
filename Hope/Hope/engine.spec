@@ -1,12 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('glaze_protection.py', '.'), ('nightshade_protection.py', '.'), ('adversarial_perturbations.py', '.'), ('ai_detector.py', '.'), ('steganography.py', '.'), ('robust_watermark.py', '.'), ('image_hashing.py', '.'), ('gpu_utils.py', '.'), ('utils.py', '.')]
+datas = [('glaze_protection.py', '.'), ('nightshade_protection.py', '.'), ('adversarial_perturbations.py', '.'), ('gpu_utils.py', '.'), ('utils.py', '.')]
 binaries = []
-hiddenimports = ['torch', 'clip', 'PIL', 'numpy', 'scipy', 'pywt']
+hiddenimports = ['torch', 'clip', 'PIL', 'numpy', 'scipy', 'pywt', 'diffusers', 'transformers', 'accelerate', 'packaging', 'safetensors', 'huggingface_hub']
 tmp_ret = collect_all('torch')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('clip')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('diffusers')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('transformers')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('accelerate')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 

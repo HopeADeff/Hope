@@ -96,8 +96,16 @@ def get_model_path(model_name: str) -> str:
     Handles both development (local) and frozen (PyInstaller) modes.
     """
     if getattr(sys, 'frozen', False):
-        base_path = Path(sys._MEIPASS)
+        # When frozen, look for assets in the same folder as the executable
+        # This avoids unpacking 4GB+ to C:\Temp which causes "Out of Disk Space" errors
+        base_path = Path(sys.executable).parent
     else:
+        # Development mode: resolve relative to this file
+        # utils.py is in Hope/Hope/engine.py location? No, check structure.
+        # Assuming D:\After\Hope\Hope\Hope\utils.py
+        # And assets are at D:\After\Hope\assets ?
+        # The original code had .parent.parent.parent. Let's verify that later, 
+        # but for now we focus on fixing the Frozen path.
         base_path = Path(__file__).parent.parent.parent
         
     model_path = base_path / "assets" / "models" / model_name

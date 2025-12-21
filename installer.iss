@@ -1,3 +1,6 @@
+; Inno Setup Script for Hope-AD
+; AI Image Protection System
+
 #define MyAppName "Hope-AD"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "HopeADeff"
@@ -36,10 +39,12 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; WPF Application
-Source: "D:\After\Hope\Hope\Hope\bin\Release\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-; Python Engine (bundled)
-Source: "D:\After\Hope\dist\engine\*"; DestDir: "{app}\engine"; Flags: ignoreversion recursesubdirs createallsubdirs
+; WPF Application (from Debug build)
+Source: "D:\After\Hope\Hope\Hope\bin\Debug\net8.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "engine"
+; Python Engine (bundled, lightweight)
+Source: "D:\After\Hope\Hope\Hope\dist\engine\*"; DestDir: "{app}\engine"; Flags: ignoreversion recursesubdirs createallsubdirs
+; AI Models (4GB - this is what makes it a full installer)
+Source: "D:\After\Hope\assets\*"; DestDir: "{app}\engine\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Documentation
 Source: "D:\After\Hope\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\After\Hope\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
