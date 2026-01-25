@@ -30,7 +30,6 @@ class GPUManager:
             self._print_device_info()
     
     def _print_device_info(self):
-        """Print device information."""
         if self._gpu_info["cuda_available"]:
             print(f"GPU: {self._gpu_info['gpu_name']}")
             print(f"VRAM: {self._gpu_info['total_memory_gb']:.1f} GB")
